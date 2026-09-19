@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journeyProgress } from "@/components/three/progress";
@@ -9,7 +9,17 @@ import { JourneyDiagram } from "./JourneyDiagram";
 import { TankerShape } from "./TankerSvg";
 import type { JourneyChapter } from "./journeyChapters";
 
-const JourneyCanvas = dynamic(() => import("@/components/three/JourneyCanvas"), { ssr: false });
+/** Stand-in used when the 3D chunk cannot be downloaded: reports failure so the page falls back to the static visual. */
+function CanvasUnavailable({ onFail }: ComponentProps<typeof import("@/components/three/JourneyCanvas").default>) {
+  useEffect(() => onFail(), [onFail]);
+  return null;
+}
+
+// A failed chunk download (network blip, blocking extension) must never take the page down.
+const JourneyCanvas = dynamic(
+  () => import("@/components/three/JourneyCanvas").catch(() => ({ default: CanvasUnavailable })),
+  { ssr: false },
+);
 
 type Mode = "pending" | "webgl-high" | "webgl-low" | "svg-motion" | "static";
 
@@ -36,6 +46,23 @@ let detected: Mode | null = null;
 const subscribeNoop = () => () => {};
 const getMode = () => (detected ??= detectMode());
 const getServerMode = (): Mode => "pending";
+
+/** Quiet loader in the route motif: a thin road line with a red trace travelling along it. */
+function RouteLoader({ visible }: { visible: boolean }) {
+  return (
+    <div
+      className={`pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-5 transition-opacity duration-500 ${visible ? "opacity-100" : "opacity-0"}`}
+      aria-hidden={!visible}
+    >
+      <div className="relative h-0.5 w-56 overflow-hidden bg-line-dark">
+        <span className="route-loader absolute inset-y-0 left-0 w-16 bg-exoil-red" />
+      </div>
+      <p className="label text-[0.65rem] text-night-muted" role={visible ? "status" : undefined}>
+        Planowanie trasy
+      </p>
+    </div>
+  );
+}
 
 function Plate({ top, bottom }: { top: string; bottom: string }) {
   return (
@@ -77,6 +104,20 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
   }, [mode, chapters.length]);
 
   const webgl = mode === "webgl-high" || mode === "webgl-low";
+  // The loader stays up briefly even on fast machines (no flicker) and gives WebGL at most 8 s before falling back.
+  const [minElapsed, setMinElapsed] = useState(false);
+  useEffect(() => {
+    const t = window.setTimeout(() => setMinElapsed(true), 450);
+    return () => window.clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (!webgl || glReady) return;
+    const t = window.setTimeout(() => setFailed(true), 8000);
+    return () => window.clearTimeout(t);
+  }, [webgl, glReady]);
+  const revealed = webgl && glReady && minElapsed;
+  // "Settled": the final visual for this device is on screen (3D scene or static graphic).
+  const settled = mode !== "pending" && minElapsed && (!webgl || revealed);
   const chapter = chapters[active] ?? chapters[0]!;
 
   return (
@@ -104,13 +145,14 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
         {/* Visual column (desktop): sticky WebGL scene, or the static diagram for the active chapter. */}
         <div className="hidden lg:block">
           <div className="sticky top-[var(--header-h)] h-[calc(100svh-var(--header-h))] overflow-hidden border-l border-line-dark">
-            {!webgl || !glReady ? (
-              <div className="absolute inset-0 flex items-center justify-center p-12">
+            {/* Static chapter graphic: reduced motion / no WebGL / 3D failed. Fades in after the loader. */}
+            {settled && !webgl ? (
+              <div className="journey-fade-in absolute inset-0 flex items-center justify-center p-12">
                 <JourneyDiagram step={active} className="w-full max-w-3xl" doubleWall={doubleWall} />
               </div>
             ) : null}
             {webgl && (
-              <div className={`absolute inset-0 transition-opacity duration-700 ${glReady ? "opacity-100" : "opacity-0"}`}>
+              <div className={`absolute inset-0 transition-opacity duration-700 ${revealed ? "opacity-100" : "opacity-0"}`}>
                 <JourneyCanvas
                   detail={mode === "webgl-high" ? "high" : "low"}
                   doubleWall={doubleWall}
@@ -122,11 +164,17 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
                 />
               </div>
             )}
-            <div className="pointer-events-none absolute bottom-6 left-6 flex items-end gap-3" aria-hidden="true">
+            <RouteLoader visible={!settled} />
+            <div
+              className={`pointer-events-none absolute bottom-6 left-6 flex items-end gap-3 transition-opacity duration-500 ${settled ? "opacity-100" : "opacity-0"}`}
+              aria-hidden="true"
+            >
               <Plate top={`Etap ${chapter.index}`} bottom={chapter.label} />
               <Plate top="Status" bottom={chapter.status} />
             </div>
-            <p className="label pointer-events-none absolute bottom-6 right-6 max-w-[16rem] text-right text-[0.65rem] text-night-muted">
+            <p
+              className={`label pointer-events-none absolute bottom-6 right-6 max-w-[16rem] text-right text-[0.65rem] text-night-muted transition-opacity duration-500 ${settled ? "opacity-100" : "opacity-0"}`}
+            >
               Wizualizacja poglądowa — nie przedstawia danych operacyjnych.
             </p>
           </div>

@@ -127,7 +127,7 @@ export default function HomePage() {
               { k: "Maszyny", t: "Olej napędowy", d: "Do maszyn i urządzeń tankowanych na miejscu pracy." },
               ...(heating ? [{ k: "Ciepło", t: "Lekki olej opałowy", d: "Do kotłów i instalacji grzewczych w budynkach i halach." }] : []),
             ].map((b) => (
-              <div key={b.k} className="bg-tank pt-6 md:pr-8">
+              <div key={b.k} className="bg-tank pb-6 pt-6 md:px-10 md:first:pl-0 md:last:pr-0">
                 <p className="label text-ink-muted">{b.k}</p>
                 <h3 className="mt-3 text-2xl font-bold">{b.t}</h3>
                 <p className="mt-3 text-ink-muted">{b.d}</p>

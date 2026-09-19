@@ -36,7 +36,7 @@ export interface TankerOptions {
 
 const COLORS = {
   cab: 0xc81d17,
-  tank: 0xe9e9e5,
+  tank: 0xffffff, // pure white shell, so the logo's white field blends into the paint
   chassis: 0x161414,
   steel: 0x9aa0a5,
   glass: 0x0e1418,
@@ -199,18 +199,83 @@ export function createTanker({ logoTexture, detail }: TankerOptions): Tanker {
   const attachLogo = (texture: THREE.Texture) => {
     const w = 3.2;
     const h = (w * 192) / 512; // exact aspect of the recovered logo file
-    // Unlit and not tone-mapped: the logo renders in exactly the colours of the image file (never recoloured).
-    const decalMat = track(new THREE.MeshBasicMaterial({ map: texture, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 }));
-    const geo = track(new THREE.PlaneGeometry(w, h));
+    // Lit exactly like the tank shell (same roughness/metalness, shell is pure white), so the logo reads as paint on the
+    // tank rather than a sticker. The image itself is untouched; only the scene lighting falls on it, as on the real trailer.
+    const decalMat = track(
+      new THREE.MeshStandardMaterial({ map: texture, roughness: 0.32, metalness: 0.35, polygonOffset: true, polygonOffsetFactor: -2 }),
+    );
     for (const side of [1, -1]) {
-      const decal = new THREE.Mesh(geo, decalMat);
-      // Rear half of the tank, as on the real semi-trailer.
-      decal.position.set(-5.4, tankCy + 0.18, side * (tankRz + 0.012));
-      // Right side (+Z) faces +Z; left side is turned around so the logo is never mirrored.
-      decal.rotation.y = side > 0 ? 0 : Math.PI;
+      const decal = new THREE.Mesh(track(curvedDecalGeometry(side as 1 | -1, w, h)), decalMat);
+      decal.receiveShadow = true;
       group.add(decal);
     }
   };
+
+  /**
+   * A patch lying on the elliptical tank shell (rear half, as on the real semi-trailer). Rows are spaced by arc length
+   * along the ellipse, so the logo keeps its exact proportions while wrapping around the curve.
+   */
+  function curvedDecalGeometry(side: 1 | -1, width: number, height: number): THREE.BufferGeometry {
+    const centreX = -5.4;
+    const lift = 1.003; // sits a hair above the paint to avoid z-fighting
+    const rows = 32;
+    // Arc-length table for the ellipse (y = Ry·sinφ, z = Rz·cosφ), φ measured up from the horizontal side line.
+    const steps = 720;
+    const phis: number[] = [];
+    const arcs: number[] = [];
+    let acc = 0;
+    for (let i = 0; i <= steps; i++) {
+      const phi = -Math.PI / 2 + (Math.PI * i) / steps;
+      if (i > 0) {
+        const mid = phi - Math.PI / steps / 2;
+        acc += Math.hypot(tankRy * Math.cos(mid), tankRz * Math.sin(mid)) * (Math.PI / steps);
+      }
+      phis.push(phi);
+      arcs.push(acc);
+    }
+    const phiAtArc = (sArc: number) => {
+      let i = 1;
+      while (i < arcs.length - 1 && arcs[i]! < sArc) i++;
+      const a0 = arcs[i - 1]!;
+      const a1 = arcs[i]!;
+      const t = a1 === a0 ? 0 : (sArc - a0) / (a1 - a0);
+      return phis[i - 1]! + t * (phis[i]! - phis[i - 1]!);
+    };
+    const centrePhi = Math.asin(0.18 / tankRy);
+    const centreArc = arcs[Math.round(((centrePhi + Math.PI / 2) / Math.PI) * steps)]!;
+
+    const positions: number[] = [];
+    const normals: number[] = [];
+    const uvs: number[] = [];
+    const indices: number[] = [];
+    for (let j = 0; j <= rows; j++) {
+      const v = j / rows;
+      const phi = phiAtArc(centreArc + (v - 0.5) * height);
+      const y = tankCy + tankRy * Math.sin(phi) * lift;
+      const z = side * tankRz * Math.cos(phi) * lift;
+      const n = new THREE.Vector3(0, Math.sin(phi) / tankRy, (side * Math.cos(phi)) / tankRz).normalize();
+      for (let i = 0; i <= 1; i++) {
+        // Seen from its own side the logo always reads left-to-right (never mirrored).
+        const x = centreX + (side > 0 ? i - 0.5 : 0.5 - i) * width;
+        positions.push(x, y, z);
+        normals.push(n.x, n.y, n.z);
+        uvs.push(i, v);
+      }
+    }
+    for (let j = 0; j < rows; j++) {
+      const a = j * 2;
+      const b = a + 1;
+      const c = a + 2;
+      const d = a + 3;
+      indices.push(a, b, d, a, d, c);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    return geo;
+  }
   if (logoTexture) attachLogo(logoTexture);
 
   // ---------------------------------------------------------------- headlight

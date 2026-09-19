@@ -40,9 +40,11 @@ but are **never applied to the logo itself** (the logo is always the image file)
   On dark "night" sections the logo appears on a white **plate** — the same way it appears on the white tank shell of the fleet.
 - Minimum clear space around the mark: the height of the red drop (≈ 12 % of logo height) on all sides.
 - Minimum size: 104 CSS px wide.
-- The 3D tanker carries the logo as an unmodified texture decal on the white tank shell, placed where it is on the real
-  semi-trailer (rear half of the tank side, below the top rail). The decal is unlit and not tone-mapped, so it renders in
-  exactly the file's colours.
+- The 3D tanker carries the logo as an unmodified texture on the white tank shell, placed where it is on the real
+  semi-trailer (rear half of the tank side, below the top rail). The decal is a patch that follows the tank's elliptical
+  curvature (rows spaced by arc length, so the logo's proportions are preserved) and is lit with the same material as the
+  pure-white shell, so it reads as paint on the tank. The image is never altered; only scene lighting falls on it, as on
+  the real vehicle. `tests/tanker-decal.test.ts` guards orientation (never mirrored) and proportions.
 - **Not used:** tone-on-tone red version (`numery-350x200.jpg`) and the reversed cab-door version (EX dark / "oil" white on
   red, seen on vehicle photos) — both exist in the wild, but no approved digital files were recovered. Request them.
 
