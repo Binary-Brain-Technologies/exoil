@@ -61,6 +61,9 @@ const CAMERA_KEYS: CamKey[] = [
   { p: 0.52, pos: [-24, 6, 4], look: [10, 2, 0], rel: true },
   { p: 0.6, pos: [-34, 40, 28], look: [10, 0, 0], rel: true },
   { p: 0.7, pos: [cx - 13, 6.5, -18], look: [cx - 3, 1.4, -5] },
+  // Swing around the yard (not over the tank) on the way to the tank close-up.
+  { p: 0.76, pos: [cx - 3, 7.5, -19], look: [cx, 1.8, tz] },
+  { p: 0.79, pos: [cx + 8, 6.8, -15.5], look: [cx, 1.8, tz] },
   { p: 0.82, pos: [cx + 9, 6, -5], look: [cx, 1.8, tz] },
   { p: 0.92, pos: [cx + 5.5, 4.2, -5.6], look: [cx, 1.9, tz] },
   { p: 1.0, pos: [cx - 14, 34, 26], look: [cx - 12, 0, -6] },
@@ -143,7 +146,7 @@ export function createJourney(
   // Delivery hose (built once, in world space, for the parked position).
   const parkedX = TANKER_KEYS[TANKER_KEYS.length - 1]![1];
   const hoseFrom = tanker.anchors.dischargePort.clone().add(new THREE.Vector3(parkedX, 0, TANKER_Z));
-  const hose = createHose(hoseFrom, world.customerTank.inletTop);
+  const hose = createHose(hoseFrom, world.customerTank.inletTop, world.customerTank.hoseApproach);
   hose.setConnected(0);
   scene.add(hose.mesh);
 

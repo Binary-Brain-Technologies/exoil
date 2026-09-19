@@ -23,7 +23,10 @@ export interface World {
     outer: THREE.Mesh;
     outerMaterial: THREE.MeshStandardMaterial;
     level: THREE.Mesh;
+    /** Top of the filler neck, where the hose connects. */
     inletTop: THREE.Vector3;
+    /** Waypoints that take the hose up outside the wall and over the rim (never through the tank). */
+    hoseApproach: THREE.Vector3[];
     height: number;
   };
   trace: THREE.Mesh;
@@ -173,7 +176,15 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
   const skid = new THREE.Mesh(track(new THREE.BoxGeometry(3.4, 0.25, 3.4)), darkSteel);
   skid.position.y = 0.125;
   inner.visible = doubleWall;
-  tankGroup.add(outer, inner, level, lid, skid);
+  // Filler neck on the lid, set in from the road-facing edge: the delivery hose connects here.
+  const tankTop = tankH + 0.25;
+  const tankR = 1.45;
+  const neckOffset = 0.9; // from the tank axis towards the road (+Z)
+  const neckH = 0.3;
+  const neck = new THREE.Mesh(track(new THREE.CylinderGeometry(0.1, 0.1, neckH, 16)), darkSteel);
+  neck.position.set(0, tankTop + neckH / 2, neckOffset);
+  neck.castShadow = true;
+  tankGroup.add(outer, inner, level, lid, skid, neck);
 
   return {
     group,
@@ -184,7 +195,13 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
       outer,
       outerMaterial,
       level,
-      inletTop: new THREE.Vector3(LAYOUT.customerTank.x, tankH + 0.3, LAYOUT.customerTank.z + 1.2),
+      inletTop: new THREE.Vector3(LAYOUT.customerTank.x, tankTop + neckH + 0.02, LAYOUT.customerTank.z + neckOffset),
+      hoseApproach: [
+        // rising alongside the wall, clear of it
+        new THREE.Vector3(LAYOUT.customerTank.x, tankTop - 1.0, LAYOUT.customerTank.z + tankR + 0.55),
+        // arching over the rim, above the lid
+        new THREE.Vector3(LAYOUT.customerTank.x, tankTop + neckH + 0.6, LAYOUT.customerTank.z + tankR - 0.1),
+      ],
       height: tankH - 0.4,
     },
     trace,
@@ -196,19 +213,22 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
 }
 
 /** Delivery hose from the tanker discharge port to the customer tank inlet, with a moving flow texture. */
-export function createHose(from: THREE.Vector3, to: THREE.Vector3) {
-  const mid = from.clone().lerp(to, 0.5);
-  mid.y = 0.12;
-  const curve = new THREE.CatmullRomCurve3([
-    from,
-    from.clone().add(new THREE.Vector3(0, -0.6, -0.8)),
-    mid,
-    to.clone().add(new THREE.Vector3(0, -1.2, 0.9)),
-    to,
-  ]);
+export const HOSE_RADIUS = 0.075;
+
+/** Centre line of the delivery hose: from the tanker, along the ground, up outside the tank wall and into the filler neck. */
+export function hoseCurve(from: THREE.Vector3, to: THREE.Vector3, approach: THREE.Vector3[] = []): THREE.CatmullRomCurve3 {
+  const first = approach[0] ?? to;
+  const mid = from.clone().lerp(first, 0.5);
+  mid.y = 0.12; // lies on the ground between the tanker and the tank
+  // Centripetal Catmull-Rom does not overshoot between points, so the hose cannot bulge into the tank wall.
+  return new THREE.CatmullRomCurve3([from, from.clone().add(new THREE.Vector3(0, -0.6, -0.8)), mid, ...approach, to], false, "centripetal");
+}
+
+export function createHose(from: THREE.Vector3, to: THREE.Vector3, approach: THREE.Vector3[] = []) {
+  const curve = hoseCurve(from, to, approach);
   const texture = stripeTexture();
   texture.repeat.set(40, 1);
-  const geometry = new THREE.TubeGeometry(curve, 96, 0.075, 10, false);
+  const geometry = new THREE.TubeGeometry(curve, 96, HOSE_RADIUS, 10, false);
   const material = new THREE.MeshStandardMaterial({ color: 0x222222, map: texture, emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.6 });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
