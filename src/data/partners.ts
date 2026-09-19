@@ -2,7 +2,7 @@ import { fact, isPublic, type Fact } from "@/lib/verification";
 
 /**
  * Suppliers and partners. Rendered ONLY when verified, with approved wording (and an approved logo file for logos).
- * Review mode does not change this: partner claims are never shown unapproved. See docs/partners-verification.md.
+ * Partner claims are never shown unapproved. See docs/partners-verification.md.
  */
 export interface Partner {
   id: string;

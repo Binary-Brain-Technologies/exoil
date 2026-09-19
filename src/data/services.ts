@@ -82,9 +82,3 @@ export function getService(id: ServiceId): Service | undefined {
 export function isServiceEnabled(id: ServiceId): boolean {
   return getService(id) !== undefined;
 }
-
-/** Enabled in production (verified), regardless of review mode — used for redirects, which must be stable. */
-export function isServiceLive(id: ServiceId): boolean {
-  const s = services.find((x) => x.id === id);
-  return !!s && s.offered.value && (s.offered.status === "VERIFIED_CURRENT");
-}

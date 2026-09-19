@@ -10,7 +10,7 @@ import { pageMetadata } from "@/lib/seo";
 
 /*
  * Built but gated: the customer-tank offer was last described on the old site in 2019.
- * This page exists only when src/data/services.ts marks "tanks" as visible (review mode or client-confirmed).
+ * This page exists while src/data/services.ts lists "tanks" as offered; the offer still needs client confirmation.
  */
 export function generateMetadata() {
   if (!getService("tanks")) return { title: "Nie znaleziono strony", robots: { index: false, follow: true } };

@@ -1,12 +1,12 @@
 import { company, SITE_URL } from "@/data/company";
 import type { Service } from "@/data/services";
 import { FUEL_CATEGORY_LABELS, type Station } from "@/data/stations";
-import { isPublic, publishable, type Fact } from "@/lib/verification";
+import { isPublic, type Fact } from "@/lib/verification";
 import { absoluteUrl } from "@/lib/seo";
 
 /**
- * Structured data uses ONLY publicly verified facts (never review-mode values), so JSON-LD can never
- * leak unconfirmed hours, phones or coordinates. No ratings, no price ranges.
+ * Structured data for search engines uses ONLY confirmed facts, so JSON-LD never asserts unconfirmed hours, phones or
+ * coordinates to Google, even though the pages display them. No ratings, no price ranges.
  */
 function pub<T>(f: Fact<T>): T | undefined {
   return isPublic(f) ? f.value : undefined;
@@ -66,7 +66,7 @@ export function serviceLd(service: Service, areaServed?: string) {
 }
 
 export function gasStationLd(station: Station) {
-  const fuels = publishable(station.fuels, "production") ?? [];
+  const fuels = pub(station.fuels) ?? [];
   return {
     "@context": "https://schema.org",
     "@type": "GasStation",

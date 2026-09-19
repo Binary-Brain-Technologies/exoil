@@ -3,7 +3,7 @@ import { absoluteUrl, isIndexable } from "@/lib/seo";
 
 /**
  * Production: open to search engines and AI crawlers (public business information is meant to be understood).
- * Previews / review mode: blocked entirely.
+ * Previews and the exoil.vercel.app client preview: blocked entirely.
  */
 export default function robots(): MetadataRoute.Robots {
   if (!isIndexable()) return { rules: [{ userAgent: "*", disallow: "/" }] };

@@ -2,7 +2,7 @@ import { fact, isVisible, type Fact } from "@/lib/verification";
 
 /**
  * Operational metrics. Nothing here is rendered unless verified (docs/business-metrics-verification.md).
- * Old 2018 values are kept only so the client can see what needs replacing in review mode.
+ * Old 2018 values are kept only as a record of what the client needs to replace; no component renders metrics yet.
  */
 export interface Metric {
   id: string;

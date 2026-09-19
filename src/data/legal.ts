@@ -2,7 +2,7 @@ import { fact, type Fact } from "@/lib/verification";
 
 /**
  * Client-approved legal texts. `null` = not supplied yet (launch blocker, see docs/legal-launch-requirements.md).
- * Forms still work without them in review mode; `npm run launch-check` fails until all are present.
+ * Forms work without them (showing the interim notice); `npm run launch-check` fails until all are present.
  */
 export const legal = {
   privacyPolicyApproved: fact(false, "CLIENT_CONFIRMATION_REQUIRED", "Brak zatwierdzonej polityki prywatności"),

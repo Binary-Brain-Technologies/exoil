@@ -20,12 +20,11 @@ Other docs: `stations-verification.md`, `business-metrics-verification.md`, `par
 
 ```bash
 npm install
-npm run dev                          # http://localhost:3000 (production content mode)
-CONTENT_MODE=review npm run dev      # shows unverified facts with a "Do weryfikacji" marker
+npm run dev                          # http://localhost:3000
 npm run build && npm run start       # production build
 npm run typecheck
 npm run lint
-npm run test                         # unit tests: redirects, verification gate, forms, NIP
+npm run test                         # unit tests: redirects, content statuses, forms, site URL, 3D geometry
 npm run launch-check                 # launch gate — fails until the client has confirmed the open items
 node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of legacy URLs
 ```
@@ -33,7 +32,8 @@ node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of l
 ## How the site is put together
 
 - **Content** — `src/data/*.ts`, one fact in one place, each with a verification status and source
-  (`src/data/README.md`). Unverified facts never render in production.
+  (`src/data/README.md`). Facts awaiting client confirmation are displayed; `npm run launch-check`
+  lists them until they are confirmed.
 - **Homepage journey** — `src/components/home/` (chapters, route rail, network map, SVG diagrams) and
   `src/components/three/` (the WebGL tanker scene, plain Three.js, loaded only on capable desktops via `next/dynamic`).
   Mobile gets an SVG route strip; `prefers-reduced-motion` gets static diagrams.

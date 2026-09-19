@@ -3,7 +3,7 @@
  * Consumed by next.config.ts (redirects) and src/proxy.ts (410 Gone).
  * Targets that depend on whether a business line is live are computed from src/data/services.ts.
  */
-import { isServiceLive } from "../data/services";
+import { isServiceEnabled } from "../data/services";
 import { hasNews } from "./news-index";
 
 export interface LegacyRedirect {
@@ -12,8 +12,8 @@ export interface LegacyRedirect {
 }
 
 export function legacyRedirects(): LegacyRedirect[] {
-  const tanks = isServiceLive("tanks") ? "/zbiorniki/" : "/hurt-paliw/";
-  const heating = isServiceLive("heating-oil") ? "/olej-opalowy/" : "/hurt-paliw/";
+  const tanks = isServiceEnabled("tanks") ? "/zbiorniki/" : "/hurt-paliw/";
+  const heating = isServiceEnabled("heating-oil") ? "/olej-opalowy/" : "/hurt-paliw/";
   const news = hasNews() ? "/aktualnosci/" : "/o-firmie/";
 
   const table: LegacyRedirect[] = [

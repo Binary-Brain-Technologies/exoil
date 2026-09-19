@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/page/PageHeader";
 import { Section } from "@/components/page/Section";
 import { getDocuments } from "@/data/documents";
-import { needsMarker } from "@/lib/verification";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -44,7 +43,7 @@ export default function DocumentsPage() {
             </thead>
             <tbody>
               {docs.map((d) => (
-                <tr key={d.id} className={`border-b border-line-light align-top ${needsMarker(d.record) ? "unverified" : ""}`} title={needsMarker(d.record) ? d.record.source : undefined}>
+                <tr key={d.id} className="border-b border-line-light align-top">
                   <td className="label py-5 pr-4 text-ink-muted">{d.type}</td>
                   <td className="py-5 pr-4">
                     <span className="block font-bold">{d.title}</span>

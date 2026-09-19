@@ -4,12 +4,12 @@
 
 ```
 /                         Homepage — one continuous route: SOURCE → LOAD → ROUTE → DELIVER → STORE → POWER → NETWORK → TRUST → HISTORY → ORDER
-├── hurt-paliw/           Flagship B2B: fuels, how ordering works, terms (only verified), documents, CTA
+├── hurt-paliw/           Flagship B2B: fuels, how ordering works, terms, documents, CTA
 ├── dostawy/              Logistics in practice: order → scheduling → loading → route → delivery → metering → paperwork (SENT)
 ├── stacje/               Station index: list + schematic network map + search by town, from src/data/stations.ts
-│   └── [slug]/           7 station pages (address, fuels, map link, nearby stations; hours/phone/facilities only when verified)
-├── olej-opalowy/         Heating oil (licence-level copy; distributor claim hidden until confirmed)
-├── zbiorniki/            Customer tanks — BUILT BUT DISABLED until the client confirms the offer (services.ts)
+│   └── [slug]/           7 station pages (address, fuels, hours, phone, map link, nearby stations)
+├── olej-opalowy/         Heating oil (incl. Ekoterm distributor claim — to be confirmed before launch)
+├── zbiorniki/            Customer tanks (offer to be confirmed before launch; can be switched off in services.ts)
 ├── o-firmie/             Company: what EXOIL is, legal data, links to history/documents
 │   ├── historia/         Business history vs legal-entity timeline (separated)
 │   └── dokumenty/        Current documents only (concession from URE registry; PDFs when supplied)
@@ -36,7 +36,7 @@ Kariera, Kontakt) · Legal block (company name, address, KRS, NIP, REGON, capita
 
 | File | Holds |
 |---|---|
-| `src/lib/verification.ts` | `fact()`, statuses, `publishable()`, review-mode switch |
+| `src/lib/verification.ts` | `fact()`, statuses, `publishable()` |
 | `src/data/company.ts` | Legal entity, registry data, contacts by department |
 | `src/data/stations.ts` | Station registry (URE-backed) |
 | `src/data/fuels.ts` | Fuel categories and grades |

@@ -78,7 +78,7 @@ asset). Request livery artwork files if the client wants it used.
 | `public/photos/history-iveco-tanker.jpg` | `2018/05/historia2-350x209.jpg` | 350×209 | Older Iveco tanker, sepia | Interim, small — used small on the history page only |
 
 The archived photos are strips (3.8 : 1) at modest resolution; the layout uses them as full-bleed bands, not tall heroes.
-They are registered in `src/data/media.ts` with status CLIENT_CONFIRMATION_REQUIRED and render only in review mode until the client confirms ownership/licence and that the pictured fleet is current.
+They are registered in `src/data/media.ts` with status CLIENT_CONFIRMATION_REQUIRED: they are displayed, and `npm run launch-check` fails until the client confirms ownership/licence and that the pictured fleet is current.
 
 ## 4. Photography request list (client)
 

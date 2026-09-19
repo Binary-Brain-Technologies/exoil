@@ -1,3 +1,4 @@
+import { resolveSiteUrl } from "@/lib/site-url";
 import { fact, type Fact } from "@/lib/verification";
 
 const KRS_SOURCE = "KRS 0001016528 — odpis aktualny, stan na 10.07.2026 (api-krs.ms.gov.pl, odczyt 19.09.2026)";
@@ -80,7 +81,7 @@ export const company = {
   ] satisfies Department[],
 } as const;
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://exoil.pl").replace(/\/$/, "");
+export const SITE_URL = resolveSiteUrl();
 
 export function formatNip(nip: string): string {
   return `${nip.slice(0, 3)}-${nip.slice(3, 6)}-${nip.slice(6, 8)}-${nip.slice(8)}`;

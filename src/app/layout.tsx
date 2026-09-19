@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { ReviewBanner } from "@/components/ui/ReviewBanner";
 import { SITE_URL } from "@/data/company";
 import { JsonLd, organizationLd } from "@/lib/jsonld";
 import { isIndexable } from "@/lib/seo";
@@ -54,7 +53,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Przejdź do treści
         </a>
-        <ReviewBanner />
         <Header />
         <main id="tresc" tabIndex={-1} className="outline-none">
           {children}

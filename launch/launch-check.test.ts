@@ -71,5 +71,4 @@ describe("environment (run with production env loaded)", () => {
       expect(process.env[k], k).toBeTruthy();
     }
   });
-  it("content mode is production", () => expect(process.env.CONTENT_MODE ?? "production").toBe("production"));
 });

@@ -1,7 +1,7 @@
 # Vercel deployment
 
-**Nothing has been deployed, no Vercel project was created and no DNS record was changed.** This document is the
-runbook for the person who will do it, when the client decides.
+Current setup: the site is deployed to a Vercel project for **client presentation on `exoil.vercel.app`**. No DNS
+record for `exoil.pl` has been changed. Launch steps are in [`pre-launch-plan.md`](./pre-launch-plan.md).
 
 ## 1. Project settings
 
@@ -17,31 +17,41 @@ runbook for the person who will do it, when the client decides.
 Recommended CI gates before promoting a deployment: `npm run typecheck`, `npm run lint`, `npm run test`.
 Before the public launch additionally: `npm run launch-check` (must be green — see `docs/migration-checklist.md`).
 
-## 2. Environments
+## 2. Environments and how the site knows its own address
 
-| Vercel environment | `CONTENT_MODE` | Indexing | Purpose |
-|---|---|---|---|
-| Preview (branch `review`) | `review` | noindex (automatic) | Client content review: every unverified fact is visible with a hatched marker |
-| Preview (other branches) | `production` | noindex (automatic) | QA of what will actually go live |
-| Production | `production` | index | Public site |
+The site URL and indexing are resolved automatically (`src/lib/site-url.ts`, covered by `tests/site-url.test.ts`):
 
-`CONTENT_MODE` is read **at build time**: after changing it, redeploy. The review deployment should be protected with
-Vercel Deployment Protection (password or Vercel Authentication), because it shows unverified historical data.
+| Situation | Site URL used (canonicals, sitemap, OG) | Indexable? |
+|---|---|---|
+| Vercel production, project domain `exoil.vercel.app` (client preview) | `https://exoil.vercel.app` | **No** — robots.txt `Disallow: /`, pages `noindex` |
+| Vercel preview deployments (branches/PRs) | the deployment's own `*.vercel.app` URL | No |
+| Vercel production after `exoil.pl` is attached as the production domain | `https://exoil.pl` | **Yes** (unless `SITE_INDEXABLE=false`) |
+| Local / non-Vercel | `https://exoil.pl` (or `NEXT_PUBLIC_SITE_URL`) | Only with `SITE_INDEXABLE=true` |
+
+Indexing depends on the domain attached to the Vercel project, never on `NEXT_PUBLIC_SITE_URL`, so the preview cannot be
+indexed by mistake. Leave `NEXT_PUBLIC_SITE_URL` **unset** on Vercel (an empty value is ignored).
+
+The site always shows the complete content as designed. `exoil.vercel.app` is publicly reachable (only hidden from
+search engines) and shows historical data the client has not yet confirmed — share the link with the client only, or
+add Vercel Deployment Protection if the plan allows.
 
 ## 3. Environment variables
 
-All variables are documented in `.env.example`. Required in Production and Preview:
+All variables are documented in `.env.example`.
 
-- `NEXT_PUBLIC_SITE_URL` = `https://exoil.pl`
-- `RESEND_API_KEY`, `FORMS_FROM_EMAIL`
+Preview for the client (`exoil.vercel.app`):
+- No variables are required for the build.
+- Forms: without the mail variables below, sending a form shows "Nie udało się wysłać wiadomości" (nothing is lost or
+  faked). To demo working forms, configure Resend with a verified sender and your own recipient addresses.
+
+Production (`exoil.pl`):
+- `RESEND_API_KEY`, `FORMS_FROM_EMAIL` (address on a Resend-verified domain, e.g. `formularze@exoil.pl`)
 - `ORDER_TO_EMAIL`, `CONTACT_TO_EMAIL` (+ optional per-topic `CONTACT_TO_EMAIL_*`), `CAREERS_TO_EMAIL`
 - `RATE_LIMIT_SALT`
+- `NEXT_PUBLIC_SITE_URL` unset (resolved from the attached domain)
 
 Optional: `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (shared rate limit across function instances — install
 Upstash from the Vercel Marketplace), `RECRUITMENT_UPLOADS_ENABLED`.
-
-Without the mail variables the forms do **not** pretend to succeed: the visitor sees "Nie udało się wysłać wiadomości"
-and their input stays in the form.
 
 ## 4. Runtime characteristics
 
@@ -56,7 +66,8 @@ and their input stays in the form.
 
 ## 5. Domains (client's DNS admin performs these steps at launch time)
 
-1. In Vercel → Project → Domains add `exoil.pl` (primary) and `www.exoil.pl` (redirect to `exoil.pl`).
+1. In Vercel → Project → Domains add `exoil.pl` (primary production domain) and `www.exoil.pl` (redirect to
+   `exoil.pl`). This is what switches indexing on and makes `exoil.pl` the canonical URL — redeploy afterwards.
 2. Vercel shows the required records (A record for the apex, CNAME for `www`).
 3. At the DNS provider change **only** those records. Keep MX (mail currently at `mx.symbioza.net`), SPF/DKIM TXT, and
    the `portal.exoil.pl` record untouched.

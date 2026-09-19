@@ -13,7 +13,7 @@ Owner legend: **C** = client, **D** = development, **C+D** = both.
 - [ ] C — Confirm "history since 1997" and approve history wording/milestones → `src/data/history.ts` 🤖
 - [ ] C — Confirm commercial terms to publish (minimum order, free delivery, lead time, temperature settlement)
 - [ ] C — Supply current documents (concession decision PDF, KRS extract, tax-strategy information, optional ZUS/US certificates) → `public/documents/` + `src/data/documents.ts`
-- [ ] D — Re-run the content review in `CONTENT_MODE=review` with the client, walk every "Do weryfikacji" marker
+- [ ] D — Walk through the preview (exoil.vercel.app) with the client using `pre-launch-plan.md` §2 as the checklist
 
 ## 2. Brand and media
 - [ ] C — Vector logo (SVG/EPS/PDF) + official colour references → replace `public/brand/*` (keep file names or update `src/components/brand/Logo.tsx`)

@@ -1,8 +1,7 @@
 /**
- * Every business fact on the site is a `Fact`: a value plus the evidence behind it.
- * Components never render a Fact's value directly — they go through `publishable()`,
- * which hides anything not verified unless the site runs in review mode.
- * See docs/content-verification.md.
+ * Every business fact on the site is a `Fact`: a value plus the evidence behind it (status + source).
+ * The status records what the client still has to confirm before launch (docs/pre-launch-plan.md,
+ * `npm run launch-check`); it does not hide content, except material marked REMOVE or OUTDATED.
  */
 
 export type VerificationStatus =
@@ -25,11 +24,15 @@ export function fact<T>(value: T, status: VerificationStatus, source: string): F
   return { value, status, source };
 }
 
-/** Statuses that may be rendered on the public production site. */
-const PUBLIC_STATUSES: ReadonlySet<VerificationStatus> = new Set(["VERIFIED_CURRENT", "SAFE_GENERAL_COPY"]);
+/** Confirmed facts: what search-engine structured data and the launch checklist rely on. */
+const CONFIRMED_STATUSES: ReadonlySet<VerificationStatus> = new Set(["VERIFIED_CURRENT", "SAFE_GENERAL_COPY"]);
 
-/** Statuses that may be shown (marked) to the client in review mode. Never REMOVE/OUTDATED. */
-const REVIEW_STATUSES: ReadonlySet<VerificationStatus> = new Set([
+/**
+ * Everything the site was designed to show. Only material removed for cause (REMOVE) or known to be superseded
+ * (OUTDATED) is never displayed. Facts still awaiting client confirmation ARE displayed; what is left to confirm is
+ * tracked by `npm run launch-check` and docs/pre-launch-plan.md, not by hiding content.
+ */
+const DISPLAYED_STATUSES: ReadonlySet<VerificationStatus> = new Set([
   "VERIFIED_CURRENT",
   "SAFE_GENERAL_COPY",
   "CLIENT_CONFIRMATION_REQUIRED",
@@ -37,36 +40,17 @@ const REVIEW_STATUSES: ReadonlySet<VerificationStatus> = new Set([
   "CONFLICTING",
 ]);
 
-export type ContentMode = "production" | "review";
-
-/**
- * `CONTENT_MODE=review` shows unverified facts with a visible marker and makes the whole site noindex.
- * Anything else (including unset) is production: verified facts only.
- */
-export function contentMode(): ContentMode {
-  return process.env.CONTENT_MODE === "review" ? "review" : "production";
-}
-
-export function isReviewMode(): boolean {
-  return contentMode() === "review";
-}
-
+/** True when the fact is confirmed (verified in a registry or by the client). */
 export function isPublic(f: Fact<unknown> | undefined): boolean {
-  return !!f && PUBLIC_STATUSES.has(f.status);
+  return !!f && CONFIRMED_STATUSES.has(f.status);
 }
 
-/** True when the fact may appear in the current mode. */
-export function isVisible(f: Fact<unknown> | undefined, mode: ContentMode = contentMode()): boolean {
-  if (!f) return false;
-  return mode === "review" ? REVIEW_STATUSES.has(f.status) : PUBLIC_STATUSES.has(f.status);
+/** True when the fact is part of the displayed site. */
+export function isVisible(f: Fact<unknown> | undefined): boolean {
+  return !!f && DISPLAYED_STATUSES.has(f.status);
 }
 
-/** The value if it may be shown in the current mode, otherwise undefined. */
-export function publishable<T>(f: Fact<T> | undefined, mode: ContentMode = contentMode()): T | undefined {
-  return f && isVisible(f, mode) ? f.value : undefined;
-}
-
-/** True when a fact is visible only because of review mode (render it with a marker). */
-export function needsMarker(f: Fact<unknown> | undefined, mode: ContentMode = contentMode()): boolean {
-  return mode === "review" && !!f && isVisible(f, mode) && !isPublic(f);
+/** The value if it is displayed on the site, otherwise undefined. */
+export function publishable<T>(f: Fact<T> | undefined): T | undefined {
+  return f && isVisible(f) ? f.value : undefined;
 }

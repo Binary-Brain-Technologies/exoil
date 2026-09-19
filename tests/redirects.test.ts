@@ -25,12 +25,12 @@ function resolve(pathname: string): string | null {
   return null;
 }
 
-// Every legacy URL from docs/url-migration-map.md with its expected outcome (tanks unconfirmed, no news yet).
+// Every legacy URL from docs/url-migration-map.md with its expected outcome (no news posts yet).
 const EXPECTED: Array<[string, string]> = [
   ["/oferta/hurt-paliw/", "/hurt-paliw/"],
   ["/oferta/stacje-paliw/", "/stacje/"],
   ["/oferta/olej-opalowy/", "/olej-opalowy/"],
-  ["/oferta/zbiorniki/", "/hurt-paliw/"],
+  ["/oferta/zbiorniki/", "/zbiorniki/"],
   ["/oferta/dostawy/", "/dostawy/"],
   ["/oferta/", "/"],
   ["/oferta/page/2/", "/"],
@@ -65,7 +65,7 @@ const EXPECTED: Array<[string, string]> = [
   ["/wp-sitemap-posts-page-1.xml", "/sitemap.xml"],
 ];
 
-const KEPT = ["/1234/", "/9999/abc/", "/", "/o-firmie/", "/o-firmie/historia/", "/o-firmie/dokumenty/", "/kariera/", "/kontakt/", "/hurt-paliw/", "/dostawy/", "/stacje/", "/stacje/siedliszcze/", "/zamow-paliwo/"];
+const KEPT = ["/1234/", "/9999/abc/", "/", "/zbiorniki/", "/o-firmie/", "/o-firmie/historia/", "/o-firmie/dokumenty/", "/kariera/", "/kontakt/", "/hurt-paliw/", "/dostawy/", "/stacje/", "/stacje/siedliszcze/", "/zamow-paliwo/"];
 
 describe("legacy redirects", () => {
   it.each(EXPECTED)("%s → %s", (from, to) => {

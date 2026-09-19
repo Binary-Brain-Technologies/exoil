@@ -4,24 +4,26 @@ Audit date: 2026-09-19. Evidence: [`historical-source-audit.md`](./historical-so
 
 ## Statuses
 
-| Status | Meaning | Rendered in production? |
+| Status | Meaning | Displayed on the site? |
 |---|---|---|
 | `VERIFIED_CURRENT` | Confirmed by an authoritative **current** source (official registry read on 2026-09-19) or by the client in writing. Source recorded. | Yes |
-| `CLIENT_CONFIRMATION_REQUIRED` | Plausible and possibly still true, but only historical/secondary evidence exists. | **No** (visible only in review mode, marked) |
-| `HISTORICAL_ONLY` | True for the past; may be told as history with its date, never as a present-tense claim. | Only as dated history, after client approval |
-| `CONFLICTING` | Sources disagree. Nothing is chosen on the client's behalf. | **No** |
+| `CLIENT_CONFIRMATION_REQUIRED` | Plausible and possibly still true, but only historical/secondary evidence exists. | Yes — must be confirmed before launch (launch-check) |
+| `HISTORICAL_ONLY` | True for the past; may be told as history with its date, never as a present-tense claim. | Yes, as dated history |
+| `CONFLICTING` | Sources disagree. Nothing is chosen on the client's behalf. | Only where a component uses it; must be resolved before launch |
 | `OUTDATED` | Known to be superseded. | No |
 | `REMOVE` | Must not be migrated (legal risk, stock imagery, obsolete entities, personal data, jokes that date badly). | No |
 | `SAFE_GENERAL_COPY` | Generic, non-factual description of a process or category that makes no measurable claim. | Yes |
 
-### How this is enforced in code
+### How this is used in code
 
-Every business fact in `src/data/*.ts` is wrapped as `fact(value, status, source)` (`src/lib/verification.ts`).
-Components never read raw values; they call `publishable(fact)` which returns the value only when the status is
-`VERIFIED_CURRENT` **or** when the site runs in review mode (`CONTENT_MODE=review`), in which case the value renders
-with a visible "Do weryfikacji" marker and the whole site is `noindex`. Production default (`CONTENT_MODE` unset or
-`production`) renders only verified facts. Client sign-off = change the status and record the source (e.g.
-`"Klient, e-mail 2026-10-02"`). There is no second copy of any fact anywhere in the codebase.
+Every business fact in `src/data/*.ts` is wrapped as `fact(value, status, source)` (`src/lib/verification.ts`). The site
+displays everything designed for it; only `REMOVE` and `OUTDATED` material is never shown. The status is the record of
+what the client still has to confirm: structured data for search engines (JSON-LD) carries only confirmed facts, and
+`npm run launch-check` fails until every launch-relevant fact is `VERIFIED_CURRENT`. Client sign-off = change the status
+and record the source (e.g. `"Klient, e-mail 2026-10-02"`). There is no second copy of any fact anywhere in the codebase.
+
+The "Decision" column below records the original recommendation; on the current preview, facts awaiting confirmation are
+displayed so the client can review the complete site (see `pre-launch-plan.md`).
 
 ---
 
@@ -151,7 +153,7 @@ All supplier names and logos are CLIENT_CONFIRMATION_REQUIRED; no logo is used. 
 |---|---|---|---|
 | K1 | Current EXOIL logo (black "EX" + red "oil" with drop) | VERIFIED_CURRENT (in use on 2023 fleet livery and 2026 site) | Used unmodified — see brand doc |
 | K2 | Tiger logo (2001), blue "EXOIL" wordmark (2013) | OUTDATED | Never used |
-| K3 | Fleet photos 2023 (4 × 1903×500) | CLIENT_CONFIRMATION_REQUIRED (rights, still-current fleet) | Wired in via `src/data/media.ts`; rendered only in review mode until the client confirms rights (launch-check item). Full-resolution originals requested |
+| K3 | Fleet photos 2023 (4 × 1903×500) | CLIENT_CONFIRMATION_REQUIRED (rights, still-current fleet) | Wired in via `src/data/media.ts`; displayed; launch-check fails until the client confirms rights. Full-resolution originals requested |
 | K4 | Stock images (documents phone, fireplace/socks) | REMOVE | Not migrated |
 | K5 | Tank product photos, partner logos | CLIENT_CONFIRMATION_REQUIRED (third-party rights) | Not used |
 | K6 | "10 000 kubków kawy" counter | REMOVE | Not migrated |

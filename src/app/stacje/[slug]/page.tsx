@@ -8,7 +8,7 @@ import { FACILITY_LABELS, FUEL_CATEGORY_LABELS, getStation, getStations, townPos
 import { directionsUrl, distanceKm } from "@/lib/geo";
 import { gasStationLd, JsonLd } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/seo";
-import { isReviewMode, isVisible, publishable } from "@/lib/verification";
+import { isVisible, publishable } from "@/lib/verification";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!s) return {};
   return pageMetadata({
     title: `${s.name} — adres i dojazd`,
-    description: `${s.name}: ${stationAddress(s, "production")}. Paliwa: ${stationFuelLabel(s) || "zobacz na stronie"}. Dojazd i pozostałe stacje EXOIL w okolicy.`,
+    description: `${s.name}: ${stationAddress(s)}. Paliwa: ${stationFuelLabel(s) || "zobacz na stronie"}. Dojazd i pozostałe stacje EXOIL w okolicy.`,
     path: `/stacje/${s.slug}/`,
   });
 }
@@ -97,7 +97,6 @@ export default async function StationPage({ params }: Props) {
                 <FactValue fact={station.street} />
                 {isVisible(station.street) && <br />}
                 <FactValue fact={station.postalCode} /> {station.postTown ?? station.city}
-                {station.note && isReviewMode() && <p className="mt-2 text-sm text-ink-muted">{station.note}</p>}
               </Row>
               {fuels.length > 0 && (
                 <Row label="Paliwa">

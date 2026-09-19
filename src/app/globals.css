@@ -183,12 +183,6 @@
     text-decoration: underline;
   }
 
-  /* Review-mode marker for facts awaiting client confirmation. */
-  .unverified {
-    background: repeating-linear-gradient(-45deg, rgb(240 138 0 / 0.16) 0 6px, transparent 6px 12px);
-    outline: 1px dashed var(--color-adr);
-    outline-offset: 2px;
-  }
 }
 
 /* Route lines that draw in when their container enters the viewport (only when JS is running). */

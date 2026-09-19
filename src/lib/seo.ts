@@ -1,20 +1,14 @@
 import type { Metadata } from "next";
 import { SITE_URL } from "@/data/company";
-import { isReviewMode } from "@/lib/verification";
+import { resolveIndexable } from "@/lib/site-url";
 
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-/**
- * True only for the real production deployment: Vercel production, or SITE_INDEXABLE=true when hosted elsewhere.
- * Local builds, previews and review mode are noindex.
- */
+/** See resolveIndexable: only the real domain (exoil.pl) in production is indexable; previews never are. */
 export function isIndexable(): boolean {
-  if (isReviewMode()) return false;
-  if (process.env.SITE_INDEXABLE === "false") return false;
-  if (process.env.SITE_INDEXABLE === "true") return true;
-  return process.env.VERCEL_ENV === "production";
+  return resolveIndexable();
 }
 
 export function pageMetadata({

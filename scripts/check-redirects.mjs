@@ -2,7 +2,7 @@
 /**
  * Verifies real HTTP behaviour of legacy URLs against a running deployment.
  * Usage: node scripts/check-redirects.mjs https://<preview-or-local-url>
- * Expectations mirror docs/url-migration-map.md (tanks unconfirmed, no news posts).
+ * Expectations mirror docs/url-migration-map.md (no news posts yet).
  */
 const base = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 
@@ -10,7 +10,8 @@ const cases = [
   ["/oferta/hurt-paliw/", 308, "/hurt-paliw/"],
   ["/oferta/stacje-paliw/", 308, "/stacje/"],
   ["/oferta/olej-opalowy/", 308, "/olej-opalowy/"],
-  ["/oferta/zbiorniki/", 308, "/hurt-paliw/"],
+  ["/oferta/zbiorniki/", 308, "/zbiorniki/"],
+  ["/zbiorniki/", 200],
   ["/oferta/dostawy/", 308, "/dostawy/"],
   ["/oferta/", 308, "/"],
   ["/nasze-ceny/", 308, "/stacje/"],
