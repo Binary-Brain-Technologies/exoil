@@ -1,0 +1,208 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   EXOIL design tokens — derived from the logo (see docs/brand-assets.md).
+   The logo itself is always the image file; these colours are never applied to it.
+   ------------------------------------------------------------------ */
+@theme {
+  --color-night: #121010;
+  --color-carbon: #1f1a17;
+  --color-asphalt: #2a2624;
+  --color-tank: #f2f2ef;
+  --color-paper: #ffffff;
+  --color-exoil-red: #da251d;
+  --color-red-deep: #b01c15;
+  --color-steel: #8b9095;
+  --color-steel-dark: #3b3f43;
+  --color-adr: #f08a00;
+  --color-ink-muted: #5c5753;
+  --color-night-muted: #a29d98;
+  --color-line-light: #d9d8d3;
+  --color-line-dark: #3a3431;
+
+  --font-display: var(--font-archivo), "Arial Narrow", system-ui, sans-serif;
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --breakpoint-xs: 26rem;
+
+  --ease-mass: cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --header-h: 4.25rem;
+    --rail: 0px;
+  }
+  @media (min-width: 64rem) {
+    :root {
+      --rail: 5.5rem;
+    }
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+
+  body {
+    background: var(--color-tank);
+    color: var(--color-carbon);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-exoil-red);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-adr);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  a {
+    text-underline-offset: 0.18em;
+    text-decoration-thickness: 1px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-variation-settings: "wdth" 112;
+    letter-spacing: -0.015em;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Page frame: content column offset by the route rail on large screens. */
+  .frame {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 40rem) {
+    .frame {
+      padding-inline: 2rem;
+    }
+  }
+  @media (min-width: 64rem) {
+    .frame {
+      padding-inline: calc(var(--rail) + 2rem) 3rem;
+    }
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "wdth" 125;
+    letter-spacing: -0.025em;
+    line-height: 0.95;
+  }
+
+  /* Mono label: logistics data vocabulary (CEL / STATUS / ŁADUNEK). */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Long-form text (legal, news, service detail). */
+  .prose-exoil {
+    max-width: 44rem;
+  }
+  .prose-exoil > * + * {
+    margin-top: 1.1em;
+  }
+  .prose-exoil h2 {
+    font-size: 1.75rem;
+    margin-top: 2.2em;
+  }
+  .prose-exoil h3 {
+    font-size: 1.3rem;
+    margin-top: 1.8em;
+  }
+  .prose-exoil ul {
+    list-style: none;
+    padding: 0;
+  }
+  .prose-exoil ul > li {
+    position: relative;
+    padding-left: 1.4em;
+  }
+  .prose-exoil ul > li::before {
+    content: "";
+    position: absolute;
+    left: 0.15em;
+    top: 0.72em;
+    width: 0.6em;
+    height: 2px;
+    background: var(--color-exoil-red);
+  }
+  .prose-exoil ol {
+    padding-left: 1.3em;
+    list-style: decimal;
+  }
+  .prose-exoil a {
+    color: var(--color-red-deep);
+    text-decoration: underline;
+  }
+
+  /* Review-mode marker for facts awaiting client confirmation. */
+  .unverified {
+    background: repeating-linear-gradient(-45deg, rgb(240 138 0 / 0.16) 0 6px, transparent 6px 12px);
+    outline: 1px dashed var(--color-adr);
+    outline-offset: 2px;
+  }
+}
+
+/* Route lines that draw in when their container enters the viewport (only when JS is running). */
+.js [data-drawn="false"] .network-route {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+[data-drawn="true"] .network-route {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.8s var(--ease-mass);
+}
+@media (prefers-reduced-motion: reduce) {
+  .js [data-drawn="false"] .network-route {
+    stroke-dashoffset: 0;
+  }
+}
