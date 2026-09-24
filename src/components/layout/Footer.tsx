@@ -84,13 +84,21 @@ export function Footer() {
             <FactValue fact={company.regon} /> · Kapitał zakładowy <FactValue fact={company.shareCapital} />
             <FactValue fact={company.registryCourt}>{(v) => <><br />{v}</>}</FactValue>
           </address>
-          <ul className="flex gap-5">
-            <li>
-              <Link href="/polityka-prywatnosci/" className="hover:text-white hover:underline">
-                Polityka prywatności
-              </Link>
-            </li>
-          </ul>
+          <div className="flex flex-col gap-3 lg:items-end">
+            <ul className="flex gap-5">
+              <li>
+                <Link href="/polityka-prywatnosci/" className="hover:text-white hover:underline">
+                  Polityka prywatności
+                </Link>
+              </li>
+            </ul>
+            <p>
+              Realizacja:{" "}
+              <a href="https://binarybrain.dev/pl" target="_blank" rel="noopener" className="text-tank/90 hover:text-white hover:underline">
+                Binary Brain Technologies
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
