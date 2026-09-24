@@ -22,8 +22,12 @@ export interface Tanker {
     /** Rear end of the combination (route trace follows this). */
     rear: THREE.Vector3;
     front: THREE.Vector3;
+    /** Headlamp lenses (beams start here). */
+    headlamps: THREE.Vector3[];
   };
   headlight: THREE.SpotLight;
+  /** The recovered logo file this tanker's decal is made for (loaded by the scene, then passed to attachLogo). */
+  logoUrl: string;
   /** Adds the logo decal (the unmodified image) to both tank sides. */
   attachLogo(texture: THREE.Texture): void;
   dispose(): void;
@@ -293,8 +297,10 @@ export function createTanker({ logoTexture, detail }: TankerOptions): Tanker {
       dischargePort: new THREE.Vector3(-0.4, 0.95, -1.2),
       rear: new THREE.Vector3(tankCx - tankLen / 2 - 0.4, 0, 0),
       front: new THREE.Vector3(cabFront + 0.2, 0, 0),
+      headlamps: [new THREE.Vector3(cabFront + 0.2, 1.18, 0.9), new THREE.Vector3(cabFront + 0.2, 1.18, -0.9)],
     },
     headlight,
+    logoUrl: "/brand/exoil-logo-on-white.png",
     attachLogo,
     dispose() {
       for (const d of disposables) d.dispose();

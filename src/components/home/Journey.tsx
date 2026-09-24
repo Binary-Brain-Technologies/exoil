@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps,
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journeyProgress } from "@/components/three/progress";
+import { VEHICLE_MODEL_URLS } from "@/components/three/scene/hero-model-urls";
 import { JourneyDiagram } from "./JourneyDiagram";
 import { TankerShape } from "./TankerSvg";
 import type { JourneyChapter } from "./journeyChapters";
@@ -104,6 +105,21 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
   }, [mode, chapters.length]);
 
   const webgl = mode === "webgl-high" || mode === "webgl-low";
+  // The tanker model starts downloading as soon as this device is known to run WebGL, in parallel with the Three.js
+  // chunk; the loader's requests are then served from the preload. (The site models follow once it has arrived.)
+  useEffect(() => {
+    if (!webgl) return;
+    const links = VEHICLE_MODEL_URLS.map((href) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "fetch";
+      link.crossOrigin = "anonymous";
+      link.href = href;
+      document.head.appendChild(link);
+      return link;
+    });
+    return () => links.forEach((l) => l.remove());
+  }, [webgl]);
   // The loader stays up briefly even on fast machines (no flicker) and gives WebGL at most 8 s before falling back.
   const [minElapsed, setMinElapsed] = useState(false);
   useEffect(() => {
