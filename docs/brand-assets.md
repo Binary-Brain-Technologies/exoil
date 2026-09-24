@@ -40,7 +40,12 @@ but are **never applied to the logo itself** (the logo is always the image file)
   On dark "night" sections the logo appears on a white **plate** — the same way it appears on the white tank shell of the fleet.
 - Minimum clear space around the mark: the height of the red drop (≈ 12 % of logo height) on all sides.
 - Minimum size: 104 CSS px wide.
-- The 3D tanker carries the logo as an unmodified texture on the white tank shell, placed where it is on the real
+- The generated 3D tanker (docs/hero-3d-models.md) is built from references with all branding removed; it carries the
+  logo only as the recovered transparent original (`exoil-logo-archive-304-transparent-original.png`, unmodified),
+  laid onto the generated tank shell at runtime (rear part of the tank side, never mirrored, proportions kept along
+  the curve; `tests/surface-decal.test.ts`, `tests/tanker-model.test.ts`). The procedural fallback tanker below keeps
+  the on-white file.
+- The procedural 3D tanker carries the logo as an unmodified texture on the white tank shell, placed where it is on the real
   semi-trailer (rear half of the tank side, below the top rail). The decal is a patch that follows the tank's elliptical
   curvature (rows spaced by arc length, so the logo's proportions are preserved) and is lit with the same material as the
   pure-white shell, so it reads as paint on the tank. The image is never altered; only scene lighting falls on it, as on

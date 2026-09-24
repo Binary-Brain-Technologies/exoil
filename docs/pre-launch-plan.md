@@ -91,6 +91,8 @@ for Google).
 - [ ] Full-resolution photos (priority order): tankers (side, front ¾, rear), loading at a base, a delivery at a customer
       site, each of the 7 stations, customer tanks (if D1), people (with consent), headquarters, dated historical photos
 - [ ] Fleet reference for the 3D tanker, if it should be refined: cab/trailer configurations, livery artwork files
+- [ ] Hero 3D models (docs/hero-3d-models.md §2): confirm the Higgsfield licence terms for commercial use, and the
+  client's consent to their fleet photos having been used as generation references
 - [ ] **Documents**: current concession decision (PDF), current KRS extract, published tax-strategy information;
       optionally current ZUS/US no-arrears certificates (they expire quickly — decide who keeps them fresh)
 

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { SiteAssets } from "./hero-assets";
 
 /**
  * Static environment for the journey: a night road along +X, a fuel base with a loading gantry,
@@ -14,14 +15,25 @@ export const LAYOUT = {
   customerTank: new THREE.Vector3(104, 0, -9.5),
 };
 
+/**
+ * Customer tank body: the procedural stand-in, or the generated yard tank (scripts/build-hero-models.mjs scales it to
+ * Ø 2.9 m and a 3.9 m body on its skid). The level cut-away and the hose route are built from these.
+ */
+export function customerTankDims(model: boolean) {
+  return model ? { height: 3.9, base: 0.27, radius: 1.45 } : { height: 3.2, base: 0.25, radius: 1.45 };
+}
+
 export interface World {
   group: THREE.Group;
   loadingArm: THREE.Mesh;
   loadingArmTop: number;
   customerTank: {
     group: THREE.Group;
-    outer: THREE.Mesh;
-    outerMaterial: THREE.MeshStandardMaterial;
+    /**
+     * Materials faded out to reveal the level: the procedural shell, or the whole generated tank (one mesh, one
+     * material — its ladder and cabinet are baked in, so they turn translucent with the wall, like an x-ray).
+     */
+    outerMaterials: THREE.Material[];
     level: THREE.Mesh;
     /** Top of the filler neck, where the hose connects. */
     inletTop: THREE.Vector3;
@@ -33,16 +45,21 @@ export interface World {
   dispose(): void;
 }
 
+/** Flow pulses for the delivery hose: black, with one soft amber pulse per repeat (used as an emissive map). */
 function stripeTexture(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 64;
   c.height = 8;
   const g = c.getContext("2d");
   if (g) {
-    g.fillStyle = "#3a0c09";
+    g.fillStyle = "#000000";
     g.fillRect(0, 0, 64, 8);
-    g.fillStyle = "#f08a00";
-    g.fillRect(0, 0, 20, 8);
+    const pulse = g.createLinearGradient(0, 0, 24, 0);
+    pulse.addColorStop(0, "rgba(240,138,0,0)");
+    pulse.addColorStop(0.7, "rgba(240,138,0,1)");
+    pulse.addColorStop(1, "rgba(240,138,0,0)");
+    g.fillStyle = pulse;
+    g.fillRect(0, 0, 24, 8);
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -50,7 +67,10 @@ function stripeTexture(): THREE.CanvasTexture {
   return t;
 }
 
-export function createWorld(detail: "high" | "low", { doubleWall = false }: { doubleWall?: boolean } = {}): World {
+export function createWorld(
+  detail: "high" | "low",
+  { doubleWall = false, assets = null, laneZ = 0 }: { doubleWall?: boolean; assets?: SiteAssets | null; laneZ?: number } = {},
+): World {
   const group = new THREE.Group();
   const disposables: Array<{ dispose(): void }> = [];
   const track = <T extends { dispose(): void }>(x: T) => (disposables.push(x), x);
@@ -114,40 +134,78 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
   const apron = mesh(new THREE.PlaneGeometry(40, 30), concrete, gx, 0.005, -10);
   apron.rotation.x = -Math.PI / 2;
   apron.castShadow = false;
-  for (const x of [gx - 5, gx + 5]) for (const z of [-4.6, 4.6]) mesh(new THREE.BoxGeometry(0.4, 7.4, 0.4), steel, x, 3.7, z);
-  mesh(new THREE.BoxGeometry(11.5, 0.5, 10.4), darkSteel, gx, 7.55, 0);
-  // Operator walkway at tank-top height, on the far side of the loading lane.
-  mesh(new THREE.BoxGeometry(9, 0.12, 1.2), steel, gx, 3.9, -4.2);
-  mesh(new THREE.BoxGeometry(9, 0.05, 0.05), steel, gx, 4.9, -4.75);
-  // Loading arm: a pipe that descends onto the tank dome.
-  const armTop = 7.3;
-  const arm = mesh(new THREE.CylinderGeometry(0.13, 0.13, 1, 12), steel, gx - 0.2, armTop - 0.5, 0);
+  let armTop = 7.3;
+  let arm: THREE.Mesh;
+  if (assets) {
+    // Generated loading gantry beside the lane (operator deck level with the tank tops), with a boom that swings
+    // over the tanker: the drop pipe comes down onto the middle dome cover.
+    const gantry = assets.gantry;
+    gantry.position.set(gx, 0, laneZ - 1.3 - 0.4 - 4.3);
+    group.add(gantry);
+    armTop = 5.4;
+    const nearEdge = gantry.position.z + 4.3;
+    const boomLen = laneZ - nearEdge;
+    const riser = mesh(new THREE.CylinderGeometry(0.11, 0.11, armTop - 3.6, 12), steel, gx - 0.2, (armTop + 3.6) / 2, nearEdge);
+    riser.castShadow = true;
+    const boom = mesh(new THREE.CylinderGeometry(0.1, 0.1, boomLen, 12), steel, gx - 0.2, armTop, nearEdge + boomLen / 2);
+    boom.rotation.x = Math.PI / 2;
+    for (const z of [nearEdge, laneZ]) mesh(new THREE.SphereGeometry(0.17, 16, 12), darkSteel, gx - 0.2, armTop, z);
+    arm = mesh(new THREE.CylinderGeometry(0.12, 0.12, 1, 12), steel, gx - 0.2, armTop, laneZ);
+    // Deck floodlights (bloom picks them up) facing the loading lane.
+    for (const x of [gx - 4.5, gx + 4.5]) mesh(new THREE.BoxGeometry(1.2, 0.08, 0.4), lamp, x, 6.2, nearEdge - 0.2).castShadow = false;
+    // Storage tanks behind the gantry: one model, three sizes and headings.
+    for (const [x, scale, heading] of [
+      [gx - 16, 0.96, 0.4],
+      [gx, 1.12, 2.1],
+      [gx + 17, 0.88, 4.0],
+    ] as const) {
+      const t = assets.storageTank.clone();
+      t.position.set(x, 0, -30);
+      t.scale.setScalar(scale);
+      t.rotation.y = heading;
+      group.add(t);
+    }
+  } else {
+    for (const x of [gx - 5, gx + 5]) for (const z of [-4.6, 4.6]) mesh(new THREE.BoxGeometry(0.4, 7.4, 0.4), steel, x, 3.7, z);
+    mesh(new THREE.BoxGeometry(11.5, 0.5, 10.4), darkSteel, gx, 7.55, 0);
+    // Operator walkway at tank-top height, on the far side of the loading lane.
+    mesh(new THREE.BoxGeometry(9, 0.12, 1.2), steel, gx, 3.9, -4.2);
+    mesh(new THREE.BoxGeometry(9, 0.05, 0.05), steel, gx, 4.9, -4.75);
+    // Loading arm: a pipe that descends onto the tank dome.
+    arm = mesh(new THREE.CylinderGeometry(0.13, 0.13, 1, 12), steel, gx - 0.2, armTop - 0.5, laneZ);
+    for (const x of [gx - 3, gx + 3]) {
+      mesh(new THREE.BoxGeometry(1.4, 0.06, 0.5), lamp, x, 7.27, laneZ).castShadow = false;
+    }
+    // Storage tanks behind the gantry.
+    const storageMat = mat({ color: 0xb9bab5, roughness: 0.5, metalness: 0.3 });
+    for (const [x, r] of [
+      [gx - 16, 6],
+      [gx, 7],
+      [gx + 17, 5.5],
+    ] as const) {
+      mesh(new THREE.CylinderGeometry(r, r, 11, detail === "high" ? 40 : 20), storageMat, x, 5.5, -30);
+      mesh(new THREE.CylinderGeometry(r + 0.05, r + 0.05, 0.15, detail === "high" ? 40 : 20), darkSteel, x, 11.05, -30);
+    }
+  }
   arm.geometry.translate(0, -0.5, 0); // pivot at the top
   arm.position.y = armTop;
   arm.scale.y = 0.4;
-  for (const x of [gx - 3, gx + 3]) {
-    mesh(new THREE.BoxGeometry(1.4, 0.06, 0.5), lamp, x, 7.27, 0).castShadow = false;
-  }
-  // Storage tanks behind the gantry.
-  const storageMat = mat({ color: 0xb9bab5, roughness: 0.5, metalness: 0.3 });
-  for (const [x, r] of [
-    [gx - 16, 6],
-    [gx, 7],
-    [gx + 17, 5.5],
-  ] as const) {
-    mesh(new THREE.CylinderGeometry(r, r, 11, detail === "high" ? 40 : 20), storageMat, x, 5.5, -30);
-    mesh(new THREE.CylinderGeometry(r + 0.05, r + 0.05, 0.15, detail === "high" ? 40 : 20), darkSteel, x, 11.05, -30);
-  }
 
   // ------------------------------------------------------------ customer site
   const cx = LAYOUT.customerX;
   const pad = mesh(new THREE.PlaneGeometry(30, 18), concrete, cx, 0.005, -12);
   pad.rotation.x = -Math.PI / 2;
   pad.castShadow = false;
-  // Hall.
-  mesh(new THREE.BoxGeometry(22, 8, 12), paint, cx + 4, 4, -24);
-  mesh(new THREE.BoxGeometry(5, 4.5, 0.2), darkSteel, cx - 1, 2.25, -17.9);
-  mesh(new THREE.BoxGeometry(5, 4.5, 0.2), darkSteel, cx + 7, 2.25, -17.9);
+  // Hall: the generated warehouse (loading doors facing the yard), or a plain block.
+  if (assets) {
+    const hall = assets.customerHall;
+    hall.position.set(cx + 4, 0, -18 - 9.2); // front facade at z ≈ -18, like the block below
+    group.add(hall);
+  } else {
+    mesh(new THREE.BoxGeometry(22, 8, 12), paint, cx + 4, 4, -24);
+    mesh(new THREE.BoxGeometry(5, 4.5, 0.2), darkSteel, cx - 1, 2.25, -17.9);
+    mesh(new THREE.BoxGeometry(5, 4.5, 0.2), darkSteel, cx + 7, 2.25, -17.9);
+  }
   // Site light.
   mesh(new THREE.BoxGeometry(0.15, 6, 0.15), steel, cx - 6, 3, -6);
   mesh(new THREE.BoxGeometry(1.2, 0.08, 0.5), lamp, cx - 5.5, 6, -6).castShadow = false;
@@ -157,34 +215,52 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
   const tankGroup = new THREE.Group();
   tankGroup.position.copy(LAYOUT.customerTank);
   group.add(tankGroup);
-  const tankH = 3.2;
-  const outerMaterial = mat({ color: 0x8b9095, roughness: 0.55, metalness: 0.35, transparent: true, opacity: 1 });
-  const outer = new THREE.Mesh(track(new THREE.CylinderGeometry(1.45, 1.45, tankH, 40)), outerMaterial);
-  outer.position.y = tankH / 2 + 0.25;
-  outer.castShadow = true;
+  const { height: tankH, base: tankBase, radius: tankR } = customerTankDims(!!assets);
+  let outerMaterials: THREE.Material[];
+  if (assets) {
+    // Generated yard tank (ladder, sight gauge, dispenser cabinet, skid). Turned so the ladder and the cabinet flank
+    // the road-facing side, leaving that side clear for the delivery hose; the cabinet faces the close-up camera.
+    const model = assets.customerTank;
+    model.rotation.y = -Math.PI / 4;
+    tankGroup.add(model);
+    outerMaterials = [];
+    model.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.Material | undefined;
+      if (m && !outerMaterials.includes(m)) {
+        m.transparent = true;
+        outerMaterials.push(m);
+      }
+    });
+  } else {
+    const outerMaterial = mat({ color: 0x8b9095, roughness: 0.55, metalness: 0.35, transparent: true, opacity: 1 });
+    const outer = new THREE.Mesh(track(new THREE.CylinderGeometry(tankR, tankR, tankH, 40)), outerMaterial);
+    outer.position.y = tankH / 2 + tankBase;
+    outer.castShadow = true;
+    const lid = new THREE.Mesh(track(new THREE.CylinderGeometry(0.35, 0.35, 0.18, 20)), mat({ color: 0xda251d, roughness: 0.5 }));
+    lid.position.y = tankH + 0.34;
+    const skid = new THREE.Mesh(track(new THREE.BoxGeometry(3.4, 0.25, 3.4)), darkSteel);
+    skid.position.y = 0.125;
+    tankGroup.add(outer, lid, skid);
+    outerMaterials = [outerMaterial];
+  }
   const innerMat = mat({ color: 0x9aa0a5, roughness: 0.4, metalness: 0.3, side: THREE.DoubleSide, transparent: true, opacity: 0.35, depthWrite: false });
   const inner = new THREE.Mesh(track(new THREE.CylinderGeometry(1.28, 1.28, tankH - 0.25, 40, 1, true)), innerMat);
-  inner.position.y = tankH / 2 + 0.25;
+  inner.position.y = tankH / 2 + tankBase;
   const fuelMat = mat({ color: 0x6a4a12, emissive: 0xf08a00, emissiveIntensity: 0.6, roughness: 0.2, transparent: true, opacity: 0.95 });
   const levelGeo = track(new THREE.CylinderGeometry(1.24, 1.24, 1, 40));
   levelGeo.translate(0, 0.5, 0);
   const level = new THREE.Mesh(levelGeo, fuelMat);
-  level.position.y = 0.4;
+  level.position.y = tankBase + 0.15;
   level.scale.y = 0.18 * (tankH - 0.4);
-  const lid = new THREE.Mesh(track(new THREE.CylinderGeometry(0.35, 0.35, 0.18, 20)), mat({ color: 0xda251d, roughness: 0.5 }));
-  lid.position.y = tankH + 0.34;
-  const skid = new THREE.Mesh(track(new THREE.BoxGeometry(3.4, 0.25, 3.4)), darkSteel);
-  skid.position.y = 0.125;
   inner.visible = doubleWall;
   // Filler neck on the lid, set in from the road-facing edge: the delivery hose connects here.
-  const tankTop = tankH + 0.25;
-  const tankR = 1.45;
+  const tankTop = tankH + tankBase;
   const neckOffset = 0.9; // from the tank axis towards the road (+Z)
   const neckH = 0.3;
   const neck = new THREE.Mesh(track(new THREE.CylinderGeometry(0.1, 0.1, neckH, 16)), darkSteel);
   neck.position.set(0, tankTop + neckH / 2, neckOffset);
   neck.castShadow = true;
-  tankGroup.add(outer, inner, level, lid, skid, neck);
+  tankGroup.add(inner, level, neck);
 
   return {
     group,
@@ -192,8 +268,7 @@ export function createWorld(detail: "high" | "low", { doubleWall = false }: { do
     loadingArmTop: armTop,
     customerTank: {
       group: tankGroup,
-      outer,
-      outerMaterial,
+      outerMaterials,
       level,
       inletTop: new THREE.Vector3(LAYOUT.customerTank.x, tankTop + neckH + 0.02, LAYOUT.customerTank.z + neckOffset),
       hoseApproach: [
@@ -229,7 +304,8 @@ export function createHose(from: THREE.Vector3, to: THREE.Vector3, approach: THR
   const texture = stripeTexture();
   texture.repeat.set(40, 1);
   const geometry = new THREE.TubeGeometry(curve, 96, HOSE_RADIUS, 10, false);
-  const material = new THREE.MeshStandardMaterial({ color: 0x222222, map: texture, emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.6 });
+  // Black rubber at rest; while fuel flows, amber pulses run along it (emissive, so the bloom pass lights them up).
+  const material = new THREE.MeshStandardMaterial({ color: 0x161616, emissiveMap: texture, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.55 });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
   // drawRange lets the hose "connect" progressively.

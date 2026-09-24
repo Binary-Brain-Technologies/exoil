@@ -24,7 +24,8 @@ npm run dev                          # http://localhost:3000
 npm run build && npm run start       # production build
 npm run typecheck
 npm run lint
-npm run test                         # unit tests: redirects, content statuses, forms, site URL, 3D geometry
+npm run test                         # unit tests: redirects, content statuses, forms, site URL, 3D geometry, model budgets
+node scripts/build-hero-models.mjs   # rebuild the hero 3D models (docs/hero-3d-models.md)
 npm run launch-check                 # launch gate — fails until the client has confirmed the open items
 node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of legacy URLs
 ```
@@ -35,7 +36,8 @@ node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of l
   (`src/data/README.md`). Facts awaiting client confirmation are displayed; `npm run launch-check`
   lists them until they are confirmed.
 - **Homepage journey** — `src/components/home/` (chapters, route rail, network map, SVG diagrams) and
-  `src/components/three/` (the WebGL tanker scene, plain Three.js, loaded only on capable desktops via `next/dynamic`).
+  `src/components/three/` (the WebGL tanker scene, plain Three.js, loaded only on capable desktops via `next/dynamic`;
+  generated 3D models in `public/models/`, see `docs/hero-3d-models.md`).
   Mobile gets an SVG route strip; `prefers-reduced-motion` gets static diagrams.
 - **Forms** — Server Actions in `src/app/actions/forms.ts`: Zod validation, honeypot + timing check, per-visitor rate
   limit, plain-text e-mail through Resend. No database.

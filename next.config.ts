@@ -30,7 +30,11 @@ const nextConfig: NextConfig = {
     return legacyRedirects().map((r) => ({ ...r, permanent: true }));
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Hero models carry a content hash in their file name (scripts/build-hero-models.mjs), so they never change in place.
+      { source: "/models/:file*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    ];
   },
 };
 
