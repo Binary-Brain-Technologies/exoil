@@ -58,7 +58,9 @@ export function JourneyFilm({
   }
   return (
     <div
-      className="sticky top-[var(--header-h)] z-0 -mb-[calc(100svh-var(--header-h))] h-[calc(100svh-var(--header-h))] overflow-hidden bg-night bg-cover bg-top lg:hidden"
+      // Sized to the *large* viewport: on iOS the toolbar collapses while scrolling and the screen grows taller than
+      // 100svh; a svh-tall film would leave a strip at the bottom where the next chapter's text shows through.
+      className="sticky top-[var(--header-h)] z-0 -mb-[calc(100vh-var(--header-h))] h-[calc(100vh-var(--header-h))] overflow-hidden bg-night bg-cover bg-top supports-[height:100lvh]:-mb-[calc(100lvh-var(--header-h))] supports-[height:100lvh]:h-[calc(100lvh-var(--header-h))] lg:hidden"
       style={first ? { backgroundImage: `url(${first.placeholder})` } : undefined}
       aria-hidden="true"
     >
