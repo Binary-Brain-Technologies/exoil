@@ -2,7 +2,6 @@ import Link from "next/link";
 import { FactValue } from "@/components/ui/FactValue";
 import { DrawOnView } from "@/components/ui/DrawOnView";
 import { Journey } from "@/components/home/Journey";
-import { JourneyDiagram } from "@/components/home/JourneyDiagram";
 import { JOURNEY_CHAPTERS } from "@/components/home/journeyChapters";
 import { NetworkMap } from "@/components/home/NetworkMap";
 import { PhotoBand } from "@/components/page/PhotoBand";
@@ -57,10 +56,12 @@ export default function HomePage() {
             key={c.id}
             id={c.id}
             aria-labelledby={`${c.id}-title`}
-            className="relative flex min-h-[calc(100svh-var(--header-h))] flex-col justify-center py-16 lg:py-24"
+            className="relative flex min-h-[calc(100svh-var(--header-h))] flex-col justify-end pb-14 pt-24 lg:justify-center lg:py-24"
           >
             <RailNode index={c.index} label={c.label} />
-            <div className="frame lg:!pr-12">
+            {/* Mobile: a full-width night band travels with the text (long, soft fades, no edge), so it stays legible
+                over any frame of the film. */}
+            <div className="frame relative before:pointer-events-none before:absolute before:-bottom-16 before:-top-56 before:left-1/2 before:-z-10 before:w-screen before:-translate-x-1/2 before:bg-night/85 before:[mask-image:linear-gradient(to_bottom,transparent,black_45%,black_85%,transparent)] lg:!pr-12 lg:before:hidden">
               {i === 0 ? (
                 <>
                   <Eyebrow index={c.index} label="Hurt · dostawy · stacje paliw" />
@@ -103,8 +104,6 @@ export default function HomePage() {
                   )}
                 </>
               )}
-              {/* Per-chapter diagram on small screens (desktop shows the sticky visual instead). */}
-              <JourneyDiagram step={i} className="mt-10 w-full max-w-xl lg:hidden" doubleWall={tanks} />
             </div>
           </article>
         ))}

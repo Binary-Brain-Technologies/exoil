@@ -86,7 +86,7 @@ The build is deterministic: the same sources give the same hashes. Files are ser
 
 ## 5. Loading and performance
 
-- **Only capable desktops load the models.** Phones (SVG strip), `prefers-reduced-motion` and `?no3d` download none.
+- **Only capable desktops load the models.** Phones (the film of stills, §7), `prefers-reduced-motion` and `?no3d` download none.
 - **Order:** the tanker (≈ 1.8 MB) is preloaded as soon as the page knows it will run WebGL, in parallel with the
   Three.js chunk. The site props download after it and swap in when they land; they are only reached after scrolling.
 - **The scene starts** when the tanker has arrived, or 5.5 s after navigation at the latest. In the late case the
@@ -120,3 +120,42 @@ The build is deterministic: the same sources give the same hashes. Files are ser
 The beam shader guards against NaN: a single NaN pixel would be spread over the whole frame by the bloom pass, and
 `tests/tanker-model.test.ts` checks every normal. QA switches: `?no3d` (static diagrams), `?nofx` (the 3D scene
 without post-processing).
+
+## 7. Mobile: the journey as a film of stills
+
+Phones (and any viewport under 64rem) don't run WebGL. They get a sticky, full-bleed "film" behind the chapter text
+(`src/components/home/JourneyFilm.tsx`): one still per chapter, rendered from the real 3D scene with the same models,
+lighting and the real logo decal. The logo in the stills is the unmodified recovered image as the scene renders it,
+never generated.
+
+- **Motion:** chapters crossfade. Within a chapter the frame pushes in slowly with the scroll, using a transform on
+  one layer, written from the existing ScrollTrigger. There is no WebGL and no per-frame layout.
+- **Reduced motion:** plain swaps, no push-in.
+- **Legibility:** a night scrim over the lower part of the frame, plus a soft vignette that travels with each chapter's
+  text. The film grain is a static CSS tile, since grain baked into the images would bloat them.
+- **Weight:** 5 × AVIF (WebP fallback) at 640 and 1080 px. At 1080 px the AVIFs are 17–35 KB each, ≈ 120 KB in
+  total. The first frame is preloaded in the document head (phones only, `fetchpriority=high`) with a 12 px inline
+  placeholder. The other frames get their sources only after `load`, so they don't compete with it.
+- **Desktop downloads none of them:** every source carries a max-width media query.
+- **Budgets and completeness:** checked by `tests/journey-stills.test.ts`.
+- **Measured** on a phone profile (390 × 844 @3x, slow 4G at 1.6 Mbit/s, CPU slowed 4×):
+
+  | Metric | Result |
+  |---|---|
+  | LCP (the first frame) | 1.8 s |
+  | CLS | 0.076 (0.09 before this change; header font swap) |
+  | Scrolling | 60 fps (16.7 ms average, p95 17.6 ms), no long tasks |
+  | 3D model downloads | 0 |
+
+  LCP is bound by the ≈ 280 KB of web fonts loading at the same time, not by the film.
+
+**Re-rendering the stills** (e.g. after a scene change):
+
+1. Run the site locally.
+2. Open `/?still` in a 1100 × 1330 desktop viewport at device scale 2. `?still` frames for portrait (subject in the
+   upper third, wider lens) and turns the grain off.
+3. Screenshot the canvas at journey progress 0, 0.3, 0.48, 0.72 and 0.92 into `.cache/journey-stills/00–04.png`.
+4. Run `node scripts/build-journey-stills.mjs`.
+
+The stills show the customer tank as configured at capture time: re-render them if the double-wall tank offer
+(`isServiceEnabled("tanks")`) changes.
