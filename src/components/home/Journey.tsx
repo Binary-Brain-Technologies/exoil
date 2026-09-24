@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journeyProgress } from "@/components/three/progress";
 import { VEHICLE_MODEL_URLS } from "@/components/three/scene/hero-model-urls";
 import { JourneyDiagram } from "./JourneyDiagram";
-import { TankerShape } from "./TankerSvg";
+import { JourneyFilm } from "./JourneyFilm";
 import type { JourneyChapter } from "./journeyChapters";
 
 /** Stand-in used when the 3D chunk cannot be downloaded: reports failure so the page falls back to the static visual. */
@@ -76,7 +76,7 @@ function Plate({ top, bottom }: { top: string; bottom: string }) {
 
 export function Journey({ chapters, children, doubleWall = false }: { chapters: JourneyChapter[]; children: ReactNode; doubleWall?: boolean }) {
   const section = useRef<HTMLElement>(null);
-  const strip = useRef<SVGGElement>(null);
+  const frames = useRef<Array<HTMLImageElement | null>>([]);
   const detectedMode = useSyncExternalStore(subscribeNoop, getMode, getServerMode);
   const [failed, setFailed] = useState(false);
   const mode: Mode = failed && detectedMode.startsWith("webgl") ? "static" : detectedMode;
@@ -95,9 +95,16 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
       onUpdate(self) {
         const p = self.progress;
         journeyProgress.set(p);
-        setActive(Math.min(n - 1, Math.floor(p * n)));
-        if (strip.current && mode === "svg-motion") {
-          strip.current.setAttribute("transform", `translate(${(p * 360).toFixed(1)} 0) scale(0.3)`);
+        const index = Math.min(n - 1, Math.floor(p * n));
+        setActive(index);
+        // Mobile film: the active frame pushes in slowly with the scroll (transform only: compositor work).
+        if (mode === "svg-motion") {
+          const t = Math.min(1, Math.max(0, p * n - index));
+          frames.current.forEach((img, i) => {
+            if (!img) return;
+            img.style.willChange = i === index ? "transform" : "";
+            if (i === index) img.style.transform = `scale(${(1.02 + 0.08 * t).toFixed(4)}) translate3d(0, ${(-1.5 * t).toFixed(3)}%, 0)`;
+          });
         }
       },
     });
@@ -138,22 +145,8 @@ export function Journey({ chapters, children, doubleWall = false }: { chapters: 
 
   return (
     <section ref={section} aria-label="Droga paliwa: od bazy do Twojego zbiornika" className="relative bg-night text-tank" data-journey-mode={mode}>
-      {/* Mobile route strip: the tanker travels along one line as the chapters scroll by. */}
-      {mode === "svg-motion" && (
-        <div className="sticky top-[var(--header-h)] z-10 border-b border-line-dark bg-night/95 lg:hidden" aria-hidden="true">
-          <svg viewBox="0 0 520 64" className="frame block h-14 w-full">
-            <line x1="12" y1="52" x2="508" y2="52" stroke="#3B3F43" strokeWidth="2" strokeDasharray="10 8" />
-            <g ref={strip} transform="translate(0 0) scale(0.3)">
-              <TankerShape y={24} />
-            </g>
-            {chapters.map((c, i) => (
-              <g key={c.id} transform={`translate(${16 + (i * 488) / (chapters.length - 1)} 52)`}>
-                <rect x="-4" y="-4" width="8" height="8" fill={i <= active ? "#DA251D" : "#121010"} stroke="#8B9095" />
-              </g>
-            ))}
-          </svg>
-        </div>
-      )}
+      {/* Mobile: the journey as a film of stills rendered from the 3D scene, behind the chapter text. */}
+      <JourneyFilm chapters={chapters} active={active} frames={frames} />
 
       <div className="lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="relative z-[1]">{children}</div>

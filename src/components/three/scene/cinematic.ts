@@ -47,7 +47,12 @@ export interface Cinematic {
   dispose(): void;
 }
 
-export function createCinematic(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): Cinematic {
+export function createCinematic(
+  renderer: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+  { grain: grainAmount = 0.045 }: { grain?: number } = {},
+): Cinematic {
   // Multisampled target: the composer would otherwise lose the canvas' antialiasing.
   const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, target);
@@ -56,6 +61,7 @@ export function createCinematic(renderer: THREE.WebGLRenderer, scene: THREE.Scen
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.6, 0.92);
   composer.addPass(bloom);
   const grain = new ShaderPass(GrainVignetteShader);
+  grain.uniforms.uGrain!.value = grainAmount;
   composer.addPass(grain);
   composer.addPass(new OutputPass());
   let seed = 0;

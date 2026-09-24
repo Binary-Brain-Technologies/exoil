@@ -26,6 +26,7 @@ npm run typecheck
 npm run lint
 npm run test                         # unit tests: redirects, content statuses, forms, site URL, 3D geometry, model budgets
 node scripts/build-hero-models.mjs   # rebuild the hero 3D models (docs/hero-3d-models.md)
+node scripts/build-journey-stills.mjs  # re-encode the mobile journey film stills (docs/hero-3d-models.md §7)
 npm run launch-check                 # launch gate — fails until the client has confirmed the open items
 node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of legacy URLs
 ```
@@ -38,7 +39,8 @@ node scripts/check-redirects.mjs http://localhost:3000   # real HTTP checks of l
 - **Homepage journey** — `src/components/home/` (chapters, route rail, network map, SVG diagrams) and
   `src/components/three/` (the WebGL tanker scene, plain Three.js, loaded only on capable desktops via `next/dynamic`;
   generated 3D models in `public/models/`, see `docs/hero-3d-models.md`).
-  Mobile gets an SVG route strip; `prefers-reduced-motion` gets static diagrams.
+  Phones get a film of stills rendered from the 3D scene (`JourneyFilm`); `prefers-reduced-motion` on desktop gets
+  static diagrams.
 - **Forms** — Server Actions in `src/app/actions/forms.ts`: Zod validation, honeypot + timing check, per-visitor rate
   limit, plain-text e-mail through Resend. No database.
 - **Legacy URLs** — `src/lib/redirects.ts` (308 redirects) and `src/proxy.ts` (410 for WordPress system paths).

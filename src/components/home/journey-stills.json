@@ -1,0 +1,147 @@
+{
+  "zrodlo": {
+    "width": 1264,
+    "height": 2524,
+    "avif": [
+      {
+        "src": "/journey/zrodlo.640.6b41955842.avif",
+        "width": 640,
+        "bytes": 13831
+      },
+      {
+        "src": "/journey/zrodlo.1080.0bb4d22648.avif",
+        "width": 1080,
+        "bytes": 26780
+      }
+    ],
+    "webp": [
+      {
+        "src": "/journey/zrodlo.640.5eb6e82995.webp",
+        "width": 640,
+        "bytes": 18366
+      },
+      {
+        "src": "/journey/zrodlo.1080.618fca32ff.webp",
+        "width": 1080,
+        "bytes": 35978
+      }
+    ],
+    "placeholder": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADQAwCdASoMABgAPu1iqk4ppaQiMAgBMB2JZwAAW9W3xDVtrD8A2wAA/vQig2HSJDzm//16oikeW68hdRTU7ukPRXQoMFsTaFyU5nmoluS8AA=="
+  },
+  "zaladunek": {
+    "width": 1264,
+    "height": 2524,
+    "avif": [
+      {
+        "src": "/journey/zaladunek.640.b0b5269213.avif",
+        "width": 640,
+        "bytes": 18699
+      },
+      {
+        "src": "/journey/zaladunek.1080.4d0b8fb2e6.avif",
+        "width": 1080,
+        "bytes": 35396
+      }
+    ],
+    "webp": [
+      {
+        "src": "/journey/zaladunek.640.121cc439a8.webp",
+        "width": 640,
+        "bytes": 26516
+      },
+      {
+        "src": "/journey/zaladunek.1080.181b67a48a.webp",
+        "width": 1080,
+        "bytes": 50668
+      }
+    ],
+    "placeholder": "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAABwAwCdASoMABgAPu1iqU2ppaOiMAgBMB2JZQAAV9MjBceBaGAA/vM02CtfKcUrEyoksYLKDsRVVtQCzTfOl0IGny/T2uv0KG9sFccXVLkAAA=="
+  },
+  "trasa": {
+    "width": 1264,
+    "height": 2524,
+    "avif": [
+      {
+        "src": "/journey/trasa.640.a7539d31ac.avif",
+        "width": 640,
+        "bytes": 10324
+      },
+      {
+        "src": "/journey/trasa.1080.88f278551f.avif",
+        "width": 1080,
+        "bytes": 19716
+      }
+    ],
+    "webp": [
+      {
+        "src": "/journey/trasa.640.824731d0bf.webp",
+        "width": 640,
+        "bytes": 13826
+      },
+      {
+        "src": "/journey/trasa.1080.1ba29b8322.webp",
+        "width": 1080,
+        "bytes": 27700
+      }
+    ],
+    "placeholder": "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABQAwCdASoMABgAPu1iqU2ppaOiMAgBMB2JZwAAW+36UKl4AAD+9BxuS4lnInnk2iiGjfNnCUoMFNKTzlbNFJjAAAA="
+  },
+  "dostawa": {
+    "width": 1264,
+    "height": 2524,
+    "avif": [
+      {
+        "src": "/journey/dostawa.640.4ad290156f.avif",
+        "width": 640,
+        "bytes": 11536
+      },
+      {
+        "src": "/journey/dostawa.1080.a24b540eda.avif",
+        "width": 1080,
+        "bytes": 21676
+      }
+    ],
+    "webp": [
+      {
+        "src": "/journey/dostawa.640.4185aafba7.webp",
+        "width": 640,
+        "bytes": 15176
+      },
+      {
+        "src": "/journey/dostawa.1080.8b283ce3f1.webp",
+        "width": 1080,
+        "bytes": 29646
+      }
+    ],
+    "placeholder": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAADwAwCdASoMABgAPu1iqk2ppaQiMAgBMB2JZwCo9B8w6LOUELga6kPwAP7u3N6Ypd5Dp9VYVYuTMDAlgm6WyMh8xqRZGnVktxz3AAAA"
+  },
+  "zbiornik": {
+    "width": 1264,
+    "height": 2524,
+    "avif": [
+      {
+        "src": "/journey/zbiornik.640.c4f5aedb10.avif",
+        "width": 640,
+        "bytes": 9373
+      },
+      {
+        "src": "/journey/zbiornik.1080.f8287a60b0.avif",
+        "width": 1080,
+        "bytes": 17898
+      }
+    ],
+    "webp": [
+      {
+        "src": "/journey/zbiornik.640.b2c675f957.webp",
+        "width": 640,
+        "bytes": 11240
+      },
+      {
+        "src": "/journey/zbiornik.1080.2b91f8c5f3.webp",
+        "width": 1080,
+        "bytes": 22930
+      }
+    ],
+    "placeholder": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAADQAwCdASoMABgAPu1iqU2ppaOiMAgBMB2JQAALy0zq6+r+fo45hYAA/qnzYi2v1SFjUgydcD48WPfTv0wpKfRhmiDzqjklgAAAAA=="
+  }
+}

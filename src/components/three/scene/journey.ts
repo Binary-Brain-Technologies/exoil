@@ -169,9 +169,13 @@ export function createJourney(
   scene.environmentIntensity = 0.22;
 
   const camera = new THREE.PerspectiveCamera(34, 16 / 9, 0.5, 600);
-  // `?nofx` (QA): the scene without post-processing, like the adaptive-quality fallback.
+  // QA / capture switches: `?nofx` renders without post-processing (like the adaptive-quality fallback); `?still`
+  // frames for the mobile film stills (scripts/build-journey-stills.mjs): subject in the upper third, no grain
+  // (the mobile layer adds its own; baked grain would bloat the images).
+  const query = new URLSearchParams(window.location.search);
+  const still = query.has("still");
   let cinematic: Cinematic | null =
-    detail === "high" && !new URLSearchParams(window.location.search).has("nofx") ? createCinematic(renderer, scene, camera) : null;
+    detail === "high" && !query.has("nofx") ? createCinematic(renderer, scene, camera, { grain: still ? 0 : undefined }) : null;
 
   // Lighting: dim sky, one cool "moon" key with shadows, plus the tanker's own headlight.
   scene.add(new THREE.HemisphereLight(0x5b6678, 0x0b0a09, 0.9));
@@ -465,7 +469,8 @@ export function createJourney(
       cinematic?.resize(width, height, dpr);
       camera.aspect = width / Math.max(1, height);
       // Narrower viewports get a wider field of view so the tanker stays in frame.
-      camera.fov = camera.aspect < 1.1 ? 46 : 34;
+      camera.fov = still ? 58 : camera.aspect < 1.1 ? 46 : 34;
+      if (still) camera.setViewOffset(width, height, width * 0.08, height * 0.2, width, height);
       camera.updateProjectionMatrix();
       needsRender = true;
       wake();
